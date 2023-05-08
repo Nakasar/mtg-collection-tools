@@ -33,7 +33,7 @@ POST http://localhost:7700/indexes
 }
 ```
 
-Set cards index searchable attributes
+Set cards index searchable attributes and filterable attributes:
 ```http request
 http://localhost:7700/indexes/:indexId/settings
 {
@@ -49,6 +49,7 @@ http://localhost:7700/indexes/:indexId/settings
         "card_faces.printed_text",
         "card_faces.printed_type_line",
         "card_faces.flavor_text"
-    ]
+    ],
+    "filterableAttributes": ["lang", "set", "oracle_id"]
 }
 ```
