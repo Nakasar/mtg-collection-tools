@@ -22,3 +22,33 @@ podman run -d -it --rm \
   --name meili \
   getmeili/meilisearch
 ```
+
+
+Create a cards index
+```http request
+POST http://localhost:7700/indexes
+{
+    "uid": "cards",
+    "primaryKey": "id"
+}
+```
+
+Set cards index searchable attributes
+```http request
+http://localhost:7700/indexes/:indexId/settings
+{
+    "searchableAttributes": [
+        "flavor_name",
+        "name",
+        "printed_name",
+        "printed_text",
+        "printed_type_line",
+        "flavor_text",
+        "card_faces.name",
+        "card_faces.printed_name",
+        "card_faces.printed_text",
+        "card_faces.printed_type_line",
+        "card_faces.flavor_text"
+    ]
+}
+```

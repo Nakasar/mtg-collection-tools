@@ -77,6 +77,25 @@ router.post('/refresh-cards-db', async (req, res) => {
                 artist: card.artist,
                 prices: card.prices,
                 edhrec_rank: card.edhrec_rank,
+                poster: card.image_uris?.normal,
+                image_uris: card.image_uris,
+                card_faces: card.card_faces?.map(face => ({
+                    cmc: face.cmc,
+                    mana_cost: face.mana_cost,
+                    printed_name: face.printed_name,
+                    name: face.name,
+                    oracle_text: face.oracle_text,
+                    power: face.power,
+                    toughness: face.toughness,
+                    type_line: face.type_line,
+                    colors: face.colors,
+                    color_indicator: face.color_indicator,
+                    printed_text: face.printed_text,
+                    printed_type_line: face.printed_type_line,
+                    flavor_text: face.flavor_text,
+                    poster: face.image_uris?.normal,
+                    image_uris: face.image_uris,
+                })),
             });
 
             if (cards.length >= batchSize) {
@@ -98,7 +117,7 @@ router.post('/refresh-cards-db', async (req, res) => {
 
                 cards = [];
 
-                await new Promise((resolve) => setTimeout(resolve, 20000));
+                await new Promise((resolve) => setTimeout(resolve, 60000));
             }
         }
 

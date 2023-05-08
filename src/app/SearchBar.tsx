@@ -1,18 +1,61 @@
-import {Fragment, ReactNode} from 'react'
-import { Menu, Transition } from '@headlessui/react'
+"use client";
+
+import React, {FormEvent, Fragment, ReactNode, useEffect, useState} from 'react'
+import {Combobox, Menu, Transition} from '@headlessui/react'
 import {
   Bars3Icon,
-  BellIcon,
+  BellIcon, ExclamationCircleIcon,
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import classNames from "@/helpers/class-name.helper";
+import {MeiliSearch} from "meilisearch";
 
 const userNavigation = [
   { name: 'Your profile', href: '#' },
   { name: 'Sign out', href: '#' },
-]
+];
+
+type Card = {
+  id: string;
+  name: string;
+  printed_name: string;
+  image_uris: { small: string };
+  collector_number: string;
+};
+
+const client = new MeiliSearch({
+  host: 'http://127.0.0.1:7700',
+});
 
 export default function SearchBar({ setSidebarOpen, children }: { setSidebarOpen: Function; children: ReactNode }) {
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<Card[]>([]);
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
+  }
+
+  async function search(): Promise<Card[]> {
+    const index = client.index<Card>('cards');
+    const result = await index.search(searchQuery);
+
+    return result.hits;
+  }
+
+  function selectItem(item: Card) {
+    console.log("selectItem", item);
+
+    setSearchQuery("");
+  }
+
+  useEffect(() => {
+    if (searchQuery.length > 0) {
+      search().then(results => setSearchResults(results));
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery])
+
   return (
     <div className="lg:pl-72">
       <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
@@ -25,22 +68,74 @@ export default function SearchBar({ setSidebarOpen, children }: { setSidebarOpen
         <div className="h-6 w-px bg-gray-900/10 lg:hidden" aria-hidden="true" />
 
         <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-          <form className="relative flex flex-1" action="#" method="GET">
-            <label htmlFor="search-field" className="sr-only">
-              Search
-            </label>
-            <MagnifyingGlassIcon
-              className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-400"
-              aria-hidden="true"
-            />
-            <input
-              id="search-field"
-              className="block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-              placeholder="Search..."
-              type="search"
-              name="search"
-            />
-          </form>
+          <div className="z-10 flex-grow">
+            <div className="divide-y divide-gray-100 overflow-hidden rounded-xl bg-white ring-1 ring-black ring-opacity-5 transition-all">
+              <Combobox onChange={selectItem}>
+                <div className="relative">
+                  <MagnifyingGlassIcon
+                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+                    aria-hidden="true"
+                  />
+                  <Combobox.Input
+                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                    placeholder="Rechercher..."
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                  />
+                </div>
+
+                {searchResults.length > 0 && (
+                  <Combobox.Options static className="max-h-96 scroll-py-3 overflow-y-auto p-3">
+                    {searchResults.map((item) => (
+                      <Combobox.Option
+                        key={item.id}
+                        value={item}
+                        className={({ active }) =>
+                          classNames('flex cursor-default select-none rounded-xl p-3', active && 'bg-gray-100')
+                        }
+                      >
+                        {({ active }) => (
+                          <>
+                            <div
+                              className={classNames(
+                                'flex h-10 w-10 flex-none items-center justify-center rounded-lg',
+                              )}
+                            >
+                              <img alt={item.printed_name} src={item.image_uris?.small} className="h-12 text-white" aria-hidden="true" />
+                            </div>
+                            <div className="ml-4 flex-auto">
+                              <p
+                                className={classNames(
+                                  'text-sm font-medium',
+                                  active ? 'text-gray-900' : 'text-gray-700'
+                                )}
+                              >
+                                {item.printed_name}
+                              </p>
+                              <p className={classNames('text-sm', active ? 'text-gray-700' : 'text-gray-500')}>
+                                {item.collector_number}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </Combobox.Option>
+                    ))}
+                  </Combobox.Options>
+                )}
+                {searchQuery !== '' && searchResults.length === 0 && (
+                  <div className="px-6 py-14 text-center text-sm sm:px-14">
+                    <ExclamationCircleIcon
+                      type="outline"
+                      name="exclamation-circle"
+                      className="mx-auto h-6 w-6 text-gray-400"
+                    />
+                    <p className="mt-4 font-semibold text-gray-900">Aucun résultat</p>
+                    <p className="mt-2 text-gray-500">Aucun élément n'a été trouvé avec cette recherche.</p>
+                  </div>
+                )}
+              </Combobox>
+            </div>
+          </div>
+
           <div className="flex items-center gap-x-4 lg:gap-x-6">
             <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
               <span className="sr-only">View notifications</span>
