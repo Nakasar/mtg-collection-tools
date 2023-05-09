@@ -3,6 +3,7 @@
 import {Fragment, ReactNode, useState} from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import {
+  ArchiveBoxIcon,
   ArrowsRightLeftIcon,
   Cog6ToothIcon,
   DocumentMagnifyingGlassIcon, FolderIcon,
@@ -12,16 +13,28 @@ import {
 import classNames from "@/helpers/class-name.helper";
 import SearchBar from "@/app/SearchBar";
 import Link from "next/link";
+import {usePathname} from "next/navigation";
 
 const navigation = [
-  { name: 'Home', href: '/', icon: HomeIcon, current: true },
-  { name: 'Traducteur', href: '/translator', icon: LanguageIcon, current: false },
-  { name: 'Recherche', href: '/finder', icon: DocumentMagnifyingGlassIcon, current: false },
-  { name: 'Boosters', href: '/boosters', icon: FolderIcon, current: false },
-  { name: 'Échange', href: '/trader', icon: ArrowsRightLeftIcon, current: false },
+  { name: 'Home', href: '/', icon: HomeIcon },
+  { name: 'Traducteur', href: '/translator', icon: LanguageIcon },
+  { name: 'Échange', href: '/trader', icon: ArrowsRightLeftIcon },
+  { name: 'Recherche', href: '/finder', icon: DocumentMagnifyingGlassIcon },
+  { name: 'Boosters', href: '/boosters', icon: FolderIcon },
+  { name: 'Collection', href: '/collection', icon: ArchiveBoxIcon },
 ];
 
+function isLinkActive(pathname: string, href: string) {
+  if (href === '/') {
+    return pathname === '/';
+  }
+
+  return pathname.startsWith(href);
+}
+
 export default function SideBar({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -85,7 +98,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
                               <Link
                                 href={item.href}
                                 className={classNames(
-                                  item.current
+                                  isLinkActive(pathname, item.href)
                                     ? 'bg-emerald-700 text-white'
                                     : 'text-emerald-200 hover:text-white hover:bg-emerald-700',
                                   'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
@@ -93,7 +106,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
                               >
                                 <item.icon
                                   className={classNames(
-                                    item.current ? 'text-white' : 'text-emerald-200 group-hover:text-white',
+                                    isLinkActive(pathname, item.href) ? 'text-white' : 'text-emerald-200 group-hover:text-white',
                                     'h-6 w-6 shrink-0'
                                   )}
                                   aria-hidden="true"
@@ -145,7 +158,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
                       <Link
                         href={item.href}
                         className={classNames(
-                          item.current
+                          isLinkActive(pathname, item.href)
                             ? 'bg-emerald-700 text-white'
                             : 'text-emerald-200 hover:text-white hover:bg-emerald-700',
                           'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
@@ -153,7 +166,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
                       >
                         <item.icon
                           className={classNames(
-                            item.current ? 'text-white' : 'text-emerald-200 group-hover:text-white',
+                            isLinkActive(pathname, item.href) ? 'text-white' : 'text-emerald-200 group-hover:text-white',
                             'h-6 w-6 shrink-0'
                           )}
                           aria-hidden="true"

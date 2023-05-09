@@ -5,6 +5,7 @@ const {join} = require("path");
 const {finished} = require("stream/promises");
 const {Readable} = require("stream");
 const {createInterface} = require("readline");
+const {rm} = require("fs/promises");
 
 const app = new Koa();
 const router = new Router();
@@ -17,8 +18,6 @@ router.post('/refresh-cards-db', async (req, res) => {
     console.info('Refreshing database from Scryfall using the following bulk data:', bulkDataMeta);
 
     fetch(bulkDataMeta.download_uri).then(async res => {
-        return '922288cb-4bef-45e1-bb30-0c2bd3d3534f';
-
         if (!res.ok) {
             throw new Error('Response does not include a stream body.');
         }
@@ -140,6 +139,7 @@ router.post('/refresh-cards-db', async (req, res) => {
         }
 
         console.log('Finished importing to search db.');
+        await rm(join(__dirname, `tmp/cards-db-downloads/${fileId}.json`));
     }).catch(error => {
         console.error('Error while refreshing card database:', error);
     });
