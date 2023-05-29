@@ -19,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full bg-white">
       <body className={classNames(inter.className, 'h-full')}>
-        <SideBar children={children} />
+        <SideBar>
+          {children}
+        </SideBar>
       </body>
     </html>
   )

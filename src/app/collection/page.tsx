@@ -1,4 +1,5 @@
-import ImportCollectionForm from "@/app/collection/ImportCollectionForm";
+import ImportCollectionForm from "./ImportCollectionForm";
+import ExportCollection from "./ExportCollection";
 
 export default function Collection() {
   return (
@@ -7,6 +8,8 @@ export default function Collection() {
 
       <div className="max-w-6xl mx-auto">
         <ImportCollectionForm />
+
+        <ExportCollection />
       </div>
     </div>
   )

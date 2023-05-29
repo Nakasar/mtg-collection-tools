@@ -14,6 +14,7 @@ export default function ImportCollectionForm() {
     setImporting(true);
 
     const formData = new FormData();
+    // @ts-ignore
     formData.append('collection-file', event?.currentTarget.elements['collection-file'].files[0]);
 
     await fetch('/api/collection/imports', {

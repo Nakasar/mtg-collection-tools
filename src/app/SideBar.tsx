@@ -194,7 +194,9 @@ export default function SideBar({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      <SearchBar setSidebarOpen={setSidebarOpen} children={children} />
+      <SearchBar setSidebarOpen={setSidebarOpen}>
+        {children}
+      </SearchBar>
     </div>
   );
 }

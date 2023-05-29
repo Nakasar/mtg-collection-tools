@@ -1,5 +1,6 @@
 import {NextRequest, NextResponse} from "next/server";
 import {MongoClient} from "mongodb";
+import neatCsv from "neat-csv";
 
 const mongoClient = new MongoClient('mongodb://localhost:27017');
 const db = mongoClient.db('mtg-tools');
@@ -19,28 +20,27 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  collectionFile.text()
+  let content = await collectionFile.text();
+
+  if (content.startsWith('"sep=,"')) {
+    content = content.substring(9);
+  }
+
+  neatCsv(content)
     .then((content) => {
-      const [separator, header, ...lines] = content.split('\n');
-
-      const cards = lines.map((line) => {
-        const [folderName, quantity, tradeQuantity, cardName, setCode, setName, cardNumber, condition, printing, language] = line.split(',');
-
-        return {
-          quantity,
-          cardName,
-          setCode,
-          setName,
-          cardNumber,
-          language,
-          printing,
-        };
-      });
-
-      return cards;
+      return content.map(row => ({
+        quantity: row['Quantity'],
+        cardName: row['Card Name'],
+        setCode: row['Set Code'],
+        setName: row['Set Name'],
+        cardNumber: row['Card Number'],
+        language: row['Language'],
+        printing: row['Printing'],
+      }));
     })
     .then(async cards => {
-      await db.collection('collection').insertMany(cards);
+      await db.collection('collection').drop();
+      await db.collection('collection').insertMany(cards.filter(card => card.cardName !== null));
     })
     .then(() => {
       console.info('Collection imported successfully.');
