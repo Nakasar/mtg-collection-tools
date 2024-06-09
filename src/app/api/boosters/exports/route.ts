@@ -1,23 +1,55 @@
 import clientPromise from "@/lib/mongo";
 import {NextResponse} from "next/server";
+import {Booster, Card} from "@/app/boosters/actions";
+import {MAGIC_SETS} from "@/constants/mtg-sets";
 
 export async function POST(request: Request) {
   const body = await request.json();
 
+  if (!['JSON', 'DRAGONSHIELD'].includes(body.format)) {
+    return NextResponse.json({ error: 'Invalid format (accepted: JSON, DRAGONSHIELD' }, { status: 400 });
+  }
+
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
-  if (body.allBoosters) {
-    const boosters = await db.collection('boosters').find().toArray();
-
-    return NextResponse.json(boosters);
-  }
-
-  const boosters = await db.collection('boosters').find({
+  const boosters = body.allBoosters ? await db.collection<Booster>('boosters').find().toArray() : await db.collection<Booster>('boosters').find({
     id: {
       $in: body.boosters
     }
   }).toArray();
 
-  return NextResponse.json(boosters);
+  if (body.format === 'JSON') {
+    return NextResponse.json(boosters, {
+      headers: {
+        'filename': 'boosters-export.json',
+      },
+    });
+  }
+
+  if (body.format === 'DRAGONSHIELD') {
+    const date = new Date();
+    const dateString = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+
+    const cards = boosters.reduce((acc: Card[], booster) => {
+      return acc.concat(booster.cards);
+    }, []);
+
+    const header = 'Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought';
+    const cardLines = cards.map((card) => {
+      const sanitizedName = card.name.includes(',') ? `"${card.name}"` : card.name;
+
+      if (!MAGIC_SETS[card.setCode.toUpperCase()]) {
+        throw new Error(`Set not found for card: ${card.name} (${card.setCode.toUpperCase()})`);
+      }
+
+      return `${'ImportMTGTools'},1,0,${sanitizedName},${card.setCode.toUpperCase()},${MAGIC_SETS[card.setCode.toUpperCase()]},${card.collectorNumber},NearMint,${card.foil ? 'Foil' : 'Normal'},${'fr'},0.5,${dateString}`;
+    });
+
+    const headers = new Headers();
+    headers.set('Content-Type', 'text/csv');
+    headers.set('filename', 'booster-cards-export-for-dragonshield.csv');
+
+    return new NextResponse(header + '\n' + cardLines.join('\n'), { status: 200, headers: headers });
+  }
 }
