@@ -3,7 +3,7 @@ import {MongoClient} from "mongodb";
 import {MeiliSearch} from "meilisearch";
 
 const mongoClient = new MongoClient('mongodb://localhost:27017');
-const db = mongoClient.db('mtg-tools');
+const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
 const meiliClient = new MeiliSearch({
   host: 'http://localhost:7700',

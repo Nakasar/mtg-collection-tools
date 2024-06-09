@@ -1,11 +1,13 @@
-export default function Boosters() {
+import {getBoosters} from "@/app/boosters/actions";
+import {BoostersPage} from "@/app/boosters/components";
+import {Suspense} from "react";
+
+export default async function Boosters() {
+  const boosters = await getBoosters();
+
   return (
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-xl font-semibold pb-8">Boosters</h1>
-
-      <div className="max-w-6xl mx-auto">
-
-      </div>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <BoostersPage boosters={boosters} />
+    </Suspense>
   );
 }

@@ -1,9 +1,6 @@
 import {NextRequest, NextResponse} from "next/server";
-import {MongoClient} from "mongodb";
 import neatCsv from "neat-csv";
-
-const mongoClient = new MongoClient('mongodb://localhost:27017');
-const db = mongoClient.db('mtg-tools');
+import clientPromise from "@/lib/mongo";
 
 export async function POST(request: NextRequest) {
   // Retrieve the file in form data and parse the CSV to JSON
@@ -19,6 +16,9 @@ export async function POST(request: NextRequest) {
       },
     });
   }
+
+  const mongoClient = await clientPromise;
+  const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
   let content = await collectionFile.text();
 

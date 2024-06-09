@@ -2,7 +2,7 @@ import {NextRequest, NextResponse} from "next/server";
 import {MongoClient} from "mongodb";
 
 const mongoClient = new MongoClient('mongodb://localhost:27017');
-const db = mongoClient.db('mtg-tools');
+const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
 export async function GET(request: NextRequest) {
   const exportFormat = request.nextUrl.searchParams.get('format');
