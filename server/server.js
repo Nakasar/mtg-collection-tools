@@ -1,11 +1,11 @@
 const Koa = require('koa');
 const Router = require("@koa/router");
-const {createWriteStream, createReadStream} = require("fs");
 const {join} = require("path");
 const {finished} = require("stream/promises");
 const {Readable} = require("stream");
 const {createInterface} = require("readline");
-const {rm} = require("fs/promises");
+const {createWriteStream, createReadStream} = require("node:fs");
+const {mkdir, rm} = require("node:fs/promises");
 
 const app = new Koa();
 const router = new Router();
@@ -24,6 +24,7 @@ router.post('/refresh-cards-db', async (req, res) => {
         if (!res.body){
             throw new Error('Response does not include a stream body.');
         }
+        await mkdir(join(__dirname, 'tmp/cards-db-downloads'), {recursive: true});
         const fileStream = createWriteStream(join(__dirname, `tmp/cards-db-downloads/${bulkDataMeta.id}.json`), {flags: 'w'});
         await finished(Readable.fromWeb(res.body).pipe(fileStream));
         console.info('Bulk DB of all files downloaded.');

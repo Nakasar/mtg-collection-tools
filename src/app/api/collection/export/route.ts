@@ -30,8 +30,13 @@ async function exportToMoxfield(request: NextRequest) {
       console.log(card);
     }
 
+    let cardSetCode = card.setCode?.toLowerCase() ?? '';
+    if (['mb1', 'pctb', 'pagl', 'peld', 'pthb'].includes(cardSetCode)) {
+      cardSetCode = 'plst';
+    }
+
     result.push(
-      `"${card.quantity}","${card.quantity}","${card.cardName}","${card.setCode?.toLowerCase() ?? ''}","","${card.language}","${card.printing?.toLowerCase() ?? ''}","","","${card.cardNumber}","","",""`
+      `"${card.quantity}","${card.quantity}","${card.cardName}","${cardSetCode}","","${card.language}","${card.printing?.toLowerCase() ?? ''}","","","${card.cardNumber}","","",""`
     );
   }
 
