@@ -29,6 +29,7 @@ export type Booster = {
   id: string;
   cards: Card[];
   price?: string;
+  archived: boolean;
   createdAt: string;
 };
 
@@ -38,7 +39,7 @@ export async function getBoosters(): Promise<Booster[]> {
 
   const boosters = await db.collection<Booster>('boosters')
     .find()
-    .sort({ createdAt: -1 })
+    .sort({createdAt: -1})
     .toArray();
 
   return boosters.map((booster) => ({
@@ -48,6 +49,7 @@ export async function getBoosters(): Promise<Booster[]> {
     cards: booster.cards,
     price: booster.price,
     createdAt: booster.createdAt,
+    archived: booster.archived,
   }));
 }
 
@@ -55,7 +57,7 @@ export async function getBooster(boosterId: Booster['id']): Promise<Booster | nu
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
-  const booster = await db.collection<Booster>('boosters').findOne({ id: boosterId });
+  const booster = await db.collection<Booster>('boosters').findOne({id: boosterId});
 
   if (!booster) {
     return null;
@@ -68,6 +70,7 @@ export async function getBooster(boosterId: Booster['id']): Promise<Booster | nu
     cards: booster.cards,
     price: booster.price,
     createdAt: booster.createdAt,
+    archived: booster.archived,
   };
 }
 
@@ -75,17 +78,20 @@ export async function deleteBooster(boosterId: Booster['id']): Promise<void> {
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
-  await db.collection<Booster>('boosters').deleteOne({ id: boosterId });
+  await db.collection<Booster>('boosters').deleteOne({id: boosterId});
 
   revalidateTag('boosters');
   redirect('/boosters');
 }
 
-export async function addCardToBoster(boosterId: Booster['id'], card: { setCode: string; collectorNumber: string }): Promise<void> {
+export async function addCardToBoster(boosterId: Booster['id'], card: {
+  setCode: string;
+  collectorNumber: string
+}): Promise<void> {
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
-  const booster = await db.collection<Booster>('boosters').findOne({ id: boosterId });
+  const booster = await db.collection<Booster>('boosters').findOne({id: boosterId});
 
   if (!booster) {
     throw new Error('Booster not found');
@@ -119,9 +125,9 @@ export async function addCardToBoster(boosterId: Booster['id'], card: { setCode:
   const boosterPrice = booster.price ? BigNumber(booster.price) : BigNumber(0);
   const newPrice = boosterPrice.plus(cardPrice);
 
-  await db.collection<Booster>('boosters').updateOne({ id: boosterId }, {
-    $push: { cards: cardData },
-    $set: { price: newPrice.toString() },
+  await db.collection<Booster>('boosters').updateOne({id: boosterId}, {
+    $push: {cards: cardData},
+    $set: {price: newPrice.toString()},
   });
 
   revalidateTag('boosters');
@@ -131,13 +137,13 @@ export async function removeCardFromBooster(boosterId: Booster['id'], cardId: Ca
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
-  const booster = await db.collection<Booster>('boosters').findOne({ id: boosterId });
+  const booster = await db.collection<Booster>('boosters').findOne({id: boosterId});
 
   if (!booster) {
     throw new Error('Booster not found');
   }
 
-  await db.collection<Booster>('boosters').updateOne({ id: boosterId }, { $pull: { cards: { id: cardId } } });
+  await db.collection<Booster>('boosters').updateOne({id: boosterId}, {$pull: {cards: {id: cardId}}});
 
   revalidateTag('boosters');
 }
@@ -146,7 +152,7 @@ export async function updateCardInBooster(boosterId: Booster['id'], cardId: Card
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
-  const booster = await db.collection<Booster>('boosters').findOne({ id: boosterId });
+  const booster = await db.collection<Booster>('boosters').findOne({id: boosterId});
 
   if (!booster) {
     throw new Error('Booster not found');
@@ -159,7 +165,7 @@ export async function updateCardInBooster(boosterId: Booster['id'], cardId: Card
     update['cards.$.price'] = undefined;
   }
 
-  await db.collection<Booster>('boosters').updateOne({ id: boosterId, 'cards.id': cardId }, { $set: update });
+  await db.collection<Booster>('boosters').updateOne({id: boosterId, 'cards.id': cardId}, {$set: update});
 
   revalidateTag('boosters');
 }
@@ -168,7 +174,7 @@ export async function refreshBoosterPrices(boosterId: Booster['id']): Promise<vo
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
-  const booster = await db.collection<Booster>('boosters').findOne({ id: boosterId });
+  const booster = await db.collection<Booster>('boosters').findOne({id: boosterId});
 
   if (!booster) {
     throw new Error('Booster not found');
@@ -192,10 +198,13 @@ export async function refreshBoosterPrices(boosterId: Booster['id']): Promise<vo
     const cardPrice = (card.foil ? cardFound.prices?.eur_foil : cardFound.prices?.eur) ?? 0;
     boosterPrice = boosterPrice.plus(cardPrice);
 
-    await db.collection<Booster>('boosters').updateOne({ id: boosterId, 'cards.id': card.id }, { $set: { 'cards.$.price': cardPrice.toString() } });
+    await db.collection<Booster>('boosters').updateOne({
+      id: boosterId,
+      'cards.id': card.id
+    }, {$set: {'cards.$.price': cardPrice.toString()}});
   }
 
-  await db.collection<Booster>('boosters').updateOne({ id: boosterId }, { $set: { price: boosterPrice.toString() } });
+  await db.collection<Booster>('boosters').updateOne({id: boosterId}, {$set: {price: boosterPrice.toString()}});
 
   revalidateTag('boosters');
 }
@@ -219,10 +228,48 @@ export async function createBooster(formData: FormData): Promise<void> {
     type: rawFormData.boosterType,
     cards: [],
     createdAt: new Date().toISOString(),
+    archived: false,
   };
 
   await db.collection<Booster>('boosters').insertOne(booster);
 
   revalidateTag('boosters');
   redirect(`/boosters/${booster.id}`);
+}
+
+export async function archiveBoosters(boosterIds: string[]): Promise<void> {
+  const mongoClient = await clientPromise;
+  const db = mongoClient.db(process.env.MONGODB_DBNAME);
+
+  await db.collection('boosters').updateMany({id: {$in: boosterIds}}, {$set: {archived: true}});
+  revalidateTag('boosters');
+}
+
+export async function archiveAllBoosters(): Promise<void> {
+  const mongoClient = await clientPromise;
+  const db = mongoClient.db(process.env.MONGODB_DBNAME);
+
+  await db.collection('boosters').updateMany({}, {$set: {archived: true}});
+  revalidateTag('boosters');
+}
+
+export async function refreshPrices(boosterIds: string[]): Promise<void> {
+  await Promise.all(boosterIds.map(async (boosterId) => {
+    await refreshBoosterPrices(boosterId);
+  }));
+
+  revalidateTag('boosters');
+}
+
+export async function refreshPricesAllBoosters(): Promise<void> {
+  const mongoClient = await clientPromise;
+  const db = mongoClient.db(process.env.MONGODB_DBNAME);
+
+  const boosters = await db.collection<Booster>('boosters').find().project({id: 1}).toArray();
+
+  const boosterIds = boosters.map((booster) => booster.id);
+
+  await refreshPrices(boosterIds);
+
+  revalidateTag('boosters');
 }

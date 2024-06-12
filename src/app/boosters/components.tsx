@@ -2,14 +2,21 @@
 
 import NewBoosterModal from "@/app/boosters/NewBoosterModal";
 import Link from "next/link";
-import {Booster} from "@/app/boosters/actions";
+import {
+  archiveAllBoosters,
+  archiveBoosters,
+  Booster,
+  refreshPrices,
+  refreshPricesAllBoosters
+} from "@/app/boosters/actions";
 import {useReducer, useState} from "react";
-import {DownloadIcon} from "lucide-react";
+import {DownloadIcon, EuroIcon} from "lucide-react";
 import {SelectIcon} from "@radix-ui/react-select";
 import {Menu, Transition, MenuItems, MenuItem, MenuButton} from "@headlessui/react";
 import {ChevronDownIcon} from "@heroicons/react/20/solid";
 import classNames from "@/helpers/class-name.helper";
 import BigNumber from "bignumber.js";
+import {ArchiveBoxIcon} from "@heroicons/react/24/outline";
 
 function boosterHasAllCards(cardsCount: number, boosterType: Booster['type']) {
   if (boosterType === 'PLAY_BOOSTER') {
@@ -31,7 +38,10 @@ function BoosterCard(booster: Booster) {
   return (
     <div className="bg-white shadow-lg rounded-lg p-4">
       <div className="flex justify-between">
-        <div className="text-lg font-semibold">{booster.setCode}</div>
+        <div className="text-lg font-semibold">
+          {booster.archived && <ArchiveBoxIcon className="w-5 h-5 text-amber-500 inline mr-2" />}
+          {booster.setCode}
+        </div>
         <div className="text-sm text-gray-500">{booster.type}</div>
       </div>
       <div className="">
@@ -108,6 +118,20 @@ export function BoostersPage({boosters}: { boosters: Booster[] }) {
     window.URL.revokeObjectURL(url);
   }
 
+  async function archiveSelectedBoosters() {
+    if (allBoostersSelected) {
+      await archiveAllBoosters();
+    } else {
+      const selectedBoostersIds = Object.keys(selectedBoosters);
+
+      if (selectedBoostersIds.length === 0) {
+        return;
+      }
+
+      await archiveBoosters(selectedBoostersIds);
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-row justify-between">
@@ -116,6 +140,48 @@ export function BoostersPage({boosters}: { boosters: Booster[] }) {
         <div className="space-x-2 flex flex-row items-center">
           {isSelectMode ? (
             <>
+              <div className="inline-flex rounded-md shadow-sm">
+                <Menu as="div" className="relative -ml-px block">
+                  <MenuButton
+                    className="relative inline-flex items-center rounded-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10">
+                    <span>Actions</span>
+                    <ChevronDownIcon className="h-5 w-5" aria-hidden="true"/>
+                  </MenuButton>
+                  <Transition
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <MenuItems
+                      className="absolute right-0 z-10 -mr-1 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <div className="py-1">
+                        <MenuItem>
+                          {({focus}) => (
+                            <button
+                              className={classNames(
+                                focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                'block px-4 py-2 text-sm w-full text-left'
+                              )}
+                              onClick={() => allBoostersSelected ? refreshPricesAllBoosters() : refreshPrices(Object.keys(selectedBoosters))}
+                            >
+                              <EuroIcon className="size-5 inline" /> Actualiser les prix
+                            </button>
+                          )}
+                        </MenuItem>
+                      </div>
+                    </MenuItems>
+                  </Transition>
+                </Menu>
+              </div>
+
+              <button className="bg-amber-500 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded"
+                      onClick={archiveSelectedBoosters}>
+                <ArchiveBoxIcon className="w-5 h-5 inline"/> Archiver
+              </button>
+
               <div className="inline-flex rounded-md shadow-sm">
                 <button
                   className="relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
@@ -188,7 +254,7 @@ export function BoostersPage({boosters}: { boosters: Booster[] }) {
 
               <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                       onClick={() => setAllBoostersSelected(!allBoostersSelected)}>
-                Tout sélectionner
+                {allBoostersSelected ? 'Tout déselectionner' : 'Tout sélectionner'}
               </button>
 
               <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
@@ -208,7 +274,6 @@ export function BoostersPage({boosters}: { boosters: Booster[] }) {
           )}
         </div>
       </div>
-
 
       <div className="max-w-6xl mx-auto">
         <p>

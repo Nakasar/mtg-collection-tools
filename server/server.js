@@ -6,6 +6,11 @@ const {Readable} = require("stream");
 const {createInterface} = require("readline");
 const {createWriteStream, createReadStream} = require("node:fs");
 const {mkdir, rm} = require("node:fs/promises");
+const {MeiliSearch} = require("meilisearch");
+
+const meiliClient = new MeiliSearch({
+    host: 'http://127.0.0.1:7700',
+});
 
 const app = new Koa();
 const router = new Router();
@@ -21,7 +26,7 @@ router.post('/refresh-cards-db', async (req, res) => {
         if (!res.ok) {
             throw new Error('Response does not include a stream body.');
         }
-        if (!res.body){
+        if (!res.body) {
             throw new Error('Response does not include a stream body.');
         }
         await mkdir(join(__dirname, 'tmp/cards-db-downloads'), {recursive: true});
@@ -41,7 +46,7 @@ router.post('/refresh-cards-db', async (req, res) => {
 
         const batchSize = 50000;
 
-        for await (const line of readInterface){
+        for await (const line of readInterface) {
             if (line.startsWith('[') || line.startsWith(']')) {
                 continue;
             }
@@ -145,7 +150,94 @@ router.post('/refresh-cards-db', async (req, res) => {
         console.error('Error while refreshing card database:', error);
     });
 
-    return { success: true };
+    return {success: true};
+});
+
+router.post('/refresh-cards-prices', async (req, res) => {
+    console.info('Starting refreshing card prices in database...');
+
+    const bulkDataMeta = await fetch('https://api.scryfall.com/bulk-data/all-cards').then(res => res.json());
+
+    console.info('Refreshing database from Scryfall using the following bulk data:', bulkDataMeta);
+
+    fetch(bulkDataMeta.download_uri).then(async res => {
+        if (!res.ok) {
+            throw new Error('Response does not include a stream body.');
+        }
+        if (!res.body) {
+            throw new Error('Response does not include a stream body.');
+        }
+        await mkdir(join(__dirname, 'tmp/cards-db-downloads'), {recursive: true});
+        const fileStream = createWriteStream(join(__dirname, `tmp/cards-db-downloads/${bulkDataMeta.id}.json`), {flags: 'w'});
+        await finished(Readable.fromWeb(res.body).pipe(fileStream));
+        console.info('Bulk DB of all files downloaded.');
+
+        return bulkDataMeta.id;
+    }).then(async (fileId) => {
+        console.info('Starting refreshing prices to search db');
+
+        const readInterface = createInterface({
+            input: createReadStream(join(__dirname, `tmp/cards-db-downloads/${fileId}.json`))
+        });
+
+        let cards = [];
+
+        const batchSize = 50000;
+
+        const cardsIndex = meiliClient.index('cards');
+
+        for await (const line of readInterface) {
+            if (line.startsWith('[') || line.startsWith(']')) {
+                continue;
+            }
+
+            const card = JSON.parse(line.trim().replace(/,$/, ''));
+
+            cards.push({
+                id: card.id,
+                prices: card.prices,
+            });
+
+            if (cards.length >= batchSize) {
+                console.debug(`Updating prices of ${batchSize} cards`);
+
+                await cardsIndex.updateDocuments(
+                    cards.map(card => ({id: card.id, prices: card.prices})),
+                    {
+                        primaryKey: 'id',
+                    }
+                )
+                    .catch(() => {
+                        console.error('Error while updating cards prices in batch to search db.');
+                    });
+
+                cards = [];
+
+                await new Promise((resolve) => setTimeout(resolve, 5000));
+            }
+        }
+
+        if (cards.length > 0) {
+            console.debug(`Updating prices of ${cards.length} cards`);
+
+            await cardsIndex.updateDocuments(
+                cards.map(card => ({id: card.id, prices: card.prices})),
+                {
+                    primaryKey: 'id',
+                }
+            )
+                .catch(() => {
+                    console.error('Error while updating cards prices in batch to search db.');
+                });
+        }
+
+        console.log('Finished refreshing prices to search db.');
+        await rm(join(__dirname, `tmp/cards-db-downloads/${fileId}.json`));
+    }).catch(error => {
+        console.error('Error while refreshing card prices in database:', error);
+    });
+
+    return {success: true};
 });
 
 app.use(router.routes()).use(router.allowedMethods());

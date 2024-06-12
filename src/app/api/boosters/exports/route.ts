@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
-  const boosters = body.allBoosters ? await db.collection<Booster>('boosters').find().toArray() : await db.collection<Booster>('boosters').find({
+  const boosters = body.allBoosters ? await db.collection<Booster>('boosters').find({ archived: false }).toArray() : await db.collection<Booster>('boosters').find({
     id: {
       $in: body.boosters
     }
