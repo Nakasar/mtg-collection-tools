@@ -18,6 +18,7 @@ import {usePathname} from "next/navigation";
 const navigation = [
   { name: 'Home', href: '/', icon: HomeIcon },
   { name: 'Traducteur', href: '/translator', icon: LanguageIcon },
+  { name: 'Convertisseur', href: '/converter', icon: FolderIcon },
   { name: 'Échange', href: '/trader', icon: ArrowsRightLeftIcon },
   { name: 'Recherche', href: '/finder', icon: DocumentMagnifyingGlassIcon },
   { name: 'Boosters', href: '/boosters', icon: FolderIcon },

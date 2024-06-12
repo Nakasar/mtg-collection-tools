@@ -29,13 +29,17 @@ export type Booster = {
   id: string;
   cards: Card[];
   price?: string;
+  createdAt: string;
 };
 
 export async function getBoosters(): Promise<Booster[]> {
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
-  const boosters = await db.collection<Booster>('boosters').find().toArray();
+  const boosters = await db.collection<Booster>('boosters')
+    .find()
+    .sort({ createdAt: -1 })
+    .toArray();
 
   return boosters.map((booster) => ({
     setCode: booster.setCode,
@@ -43,6 +47,7 @@ export async function getBoosters(): Promise<Booster[]> {
     type: booster.type,
     cards: booster.cards,
     price: booster.price,
+    createdAt: booster.createdAt,
   }));
 }
 
@@ -62,6 +67,7 @@ export async function getBooster(boosterId: Booster['id']): Promise<Booster | nu
     type: booster.type,
     cards: booster.cards,
     price: booster.price,
+    createdAt: booster.createdAt,
   };
 }
 
@@ -98,13 +104,15 @@ export async function addCardToBoster(boosterId: Booster['id'], card: { setCode:
 
   const cardPrice = (cardFound.foil ? cardFound.prices?.eur_foil : cardFound.prices?.eur) ?? 0;
 
+  let imageUrl = cardFound.image_uris ? cardFound.image_uris?.small : cardFound.card_faces ? cardFound.card_faces[0]?.image_uris?.small : null;
+
   const cardData = {
     id: nanoid(12),
     name: cardFound.name,
     setCode: cardFound.set,
     collectorNumber: cardFound.collector_number,
     foil: cardFound.foil,
-    imageUrl: cardFound.card_faces ? cardFound.card_faces[0].image_uris.small : cardFound.image_uris.small,
+    imageUrl: imageUrl,
     price: cardPrice.toString(),
   };
 
@@ -210,6 +218,7 @@ export async function createBooster(formData: FormData): Promise<void> {
     setCode: rawFormData.setCode,
     type: rawFormData.boosterType,
     cards: [],
+    createdAt: new Date().toISOString(),
   };
 
   await db.collection<Booster>('boosters').insertOne(booster);

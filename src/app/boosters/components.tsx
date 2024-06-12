@@ -9,6 +9,7 @@ import {SelectIcon} from "@radix-ui/react-select";
 import {Menu, Transition, MenuItems, MenuItem, MenuButton} from "@headlessui/react";
 import {ChevronDownIcon} from "@heroicons/react/20/solid";
 import classNames from "@/helpers/class-name.helper";
+import BigNumber from "bignumber.js";
 
 function boosterHasAllCards(cardsCount: number, boosterType: Booster['type']) {
   if (boosterType === 'PLAY_BOOSTER') {
@@ -34,16 +35,20 @@ function BoosterCard(booster: Booster) {
         <div className="text-sm text-gray-500">{booster.type}</div>
       </div>
       <div className="">
-        <span className={boosterHasAllCards(booster.cards.length, booster.type) ? '' : 'text-red-500'}>{booster.cards.length} carte{booster.cards.length > 1 ? 's' : ''}</span> {booster.price ? `(environ ${booster.price} €)` : ''}
+        <span
+          className={boosterHasAllCards(booster.cards.length, booster.type) ? '' : 'text-red-500'}>{booster.cards.length} carte{booster.cards.length > 1 ? 's' : ''}</span> {booster.price ? `(environ ${booster.price} €)` : ''}
       </div>
     </div>
   );
 }
 
-export function BoostersPage({ boosters }: { boosters: Booster[] }) {
+export function BoostersPage({boosters}: { boosters: Booster[] }) {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [allBoostersSelected, setAllBoostersSelected] = useState(false);
-  const [selectedBoosters, dispatchSelectedBoosters] = useReducer((state: { [boosterId: string]: boolean}, action: { type: 'SELECT' | 'UNSELECT', boosterId: Booster['id'] }) => {
+  const [selectedBoosters, dispatchSelectedBoosters] = useReducer((state: { [boosterId: string]: boolean }, action: {
+    type: 'SELECT' | 'UNSELECT',
+    boosterId: Booster['id']
+  }) => {
     if (action.type === 'SELECT') {
       return {
         ...state,
@@ -52,7 +57,7 @@ export function BoostersPage({ boosters }: { boosters: Booster[] }) {
     }
 
     if (action.type === 'UNSELECT') {
-      const newState = { ...state };
+      const newState = {...state};
       delete newState[action.boosterId];
       return newState;
     }
@@ -60,7 +65,7 @@ export function BoostersPage({ boosters }: { boosters: Booster[] }) {
     return state;
   }, {})
 
-  async function exportBoosters({ format }: { format: string }) {
+  async function exportBoosters({format}: { format: string }) {
     const selectedBoostersData: {
       allBoosters?: boolean;
       boosters?: string[];
@@ -107,13 +112,14 @@ export function BoostersPage({ boosters }: { boosters: Booster[] }) {
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-row justify-between">
         <h1 className="text-xl font-semibold pb-8">Boosters</h1>
+
         <div className="space-x-2 flex flex-row items-center">
           {isSelectMode ? (
             <>
               <div className="inline-flex rounded-md shadow-sm">
                 <button
                   className="relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
-                  onClick={() => exportBoosters({ format: 'JSON' })}
+                  onClick={() => exportBoosters({format: 'JSON'})}
                 >
                   <DownloadIcon className="w-5 h-5 inline"/> Télécharger
                 </button>
@@ -141,7 +147,7 @@ export function BoostersPage({ boosters }: { boosters: Booster[] }) {
                                 focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                                 'block px-4 py-2 text-sm'
                               )}
-                              onClick={() => exportBoosters({ format: 'JSON' })}
+                              onClick={() => exportBoosters({format: 'JSON'})}
                             >
                               Export JSON
                             </button>
@@ -154,7 +160,7 @@ export function BoostersPage({ boosters }: { boosters: Booster[] }) {
                                 focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                                 'block px-4 py-2 text-sm'
                               )}
-                              onClick={() => exportBoosters({ format: 'DRAGONSHIELD' })}
+                              onClick={() => exportBoosters({format: 'DRAGONSHIELD'})}
                             >
                               Export pour DragonShield
                             </button>
@@ -167,7 +173,7 @@ export function BoostersPage({ boosters }: { boosters: Booster[] }) {
                                 focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                                 'block px-4 py-2 text-sm'
                               )}
-                              onClick={() => exportBoosters({ format: 'MOXFIELD' })}
+                              onClick={() => exportBoosters({format: 'MOXFIELD'})}
                             >
                               Export pour Moxfield
                             </button>
@@ -205,6 +211,15 @@ export function BoostersPage({ boosters }: { boosters: Booster[] }) {
 
 
       <div className="max-w-6xl mx-auto">
+        <p>
+          Moyenne par
+          booster: {boosters.reduce((acc, booster) => acc.plus(booster.price ?? 0), BigNumber(0)).div(boosters.length).toFixed(2)}€
+        </p>
+
+        <p>
+          Total: {boosters.reduce((acc, booster) => acc.plus(booster.price ?? 0), BigNumber(0)).toFixed(2)}€
+        </p>
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {boosters.map((booster) => (
             <>

@@ -25,6 +25,7 @@
     "eslint": "8.40.0",
     "eslint-config-next": "13.4.1",
     "lucide-react": "^0.390.0",
+    "luxon": "^3.4.4",
     "meilisearch": "^0.32.3",
     "mongodb": "^5.4.0",
     "neat-csv": "^7.0.0",
@@ -37,5 +38,8 @@
     "tailwindcss": "3.4.4",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.0.4"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.4.2"
   }
 }

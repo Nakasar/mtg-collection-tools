@@ -2,6 +2,7 @@ import clientPromise from "@/lib/mongo";
 import {NextResponse} from "next/server";
 import {Booster, Card} from "@/app/boosters/actions";
 import {MAGIC_SETS} from "@/constants/mtg-sets";
+import {DateTime} from "luxon";
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -31,8 +32,8 @@ export async function POST(request: Request) {
     const date = new Date();
     const dateString = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 
-    const cards = boosters.reduce((acc: Card[], booster) => {
-      return acc.concat(booster.cards);
+    const cards = boosters.reduce((acc: (Card & { createdAt: string })[], booster) => {
+      return acc.concat(booster.cards.map(card => ({ ...card, createdAt: booster.createdAt })));
     }, []);
 
     const header = 'Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought';
@@ -43,7 +44,9 @@ export async function POST(request: Request) {
         throw new Error(`Set not found for card: ${card.name} (${card.setCode.toUpperCase()})`);
       }
 
-      return `${'ImportMTGTools'},1,0,${sanitizedName},${card.setCode.toUpperCase()},${MAGIC_SETS[card.setCode.toUpperCase()]},${card.collectorNumber},NearMint,${card.foil ? 'Foil' : 'Normal'},${'fr'},0.5,${dateString}`;
+      const cardDate = DateTime.fromISO(card.createdAt ?? date.toISOString());
+
+      return `${'MH3'},1,0,${sanitizedName},${card.setCode.toUpperCase()},${MAGIC_SETS[card.setCode.toUpperCase()]},${card.collectorNumber},NearMint,${card.foil ? 'Foil' : 'Normal'},${'fr'},0.5,${cardDate.toFormat('dd/LLL/yyyy')}`;
     });
 
     const headers = new Headers();
