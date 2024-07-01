@@ -30,7 +30,6 @@ export async function POST(request: Request) {
 
   if (body.format === 'DRAGONSHIELD') {
     const date = new Date();
-    const dateString = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 
     const cards = boosters.reduce((acc: (Card & { createdAt: string })[], booster) => {
       return acc.concat(booster.cards.map(card => ({ ...card, createdAt: booster.createdAt })));

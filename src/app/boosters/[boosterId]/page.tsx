@@ -46,7 +46,11 @@ export default async function BoosterDetails({ params }: { params: { boosterId: 
         </div>
 
         <div className="py-8">
-          <AddCardBar setCode={booster.setCode} addCard={addCard}/>
+          <AddCardBar
+            setCode={booster.setCode}
+            lang={booster.lang ?? 'en'}
+            addCard={addCard}
+          />
         </div>
 
         <div className="flex flex-wrap gap-2">

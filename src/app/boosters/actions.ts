@@ -25,6 +25,7 @@ export type Card = {
 
 export type Booster = {
   setCode: string; // Set code (MH3, OTJ, ...)
+  lang: string;
   type: string; // Play Booster, Set Booster, Draft Booster, Jumpstart, ...
   id: string;
   cards: Card[];
@@ -44,6 +45,7 @@ export async function getBoosters(): Promise<Booster[]> {
 
   return boosters.map((booster) => ({
     setCode: booster.setCode,
+    lang: booster.lang,
     id: booster.id,
     type: booster.type,
     cards: booster.cards,
@@ -66,6 +68,7 @@ export async function getBooster(boosterId: Booster['id']): Promise<Booster | nu
   return {
     setCode: booster.setCode,
     id: booster.id,
+    lang: booster.lang,
     type: booster.type,
     cards: booster.cards,
     price: booster.price,
@@ -213,9 +216,10 @@ export async function createBooster(formData: FormData): Promise<void> {
   const rawFormData = {
     setCode: formData.get('setCode'),
     boosterType: formData.get('boosterType'),
+    lang: formData.get('lang'),
   };
 
-  if (!rawFormData.setCode || !rawFormData.boosterType || typeof rawFormData.setCode !== 'string' || typeof rawFormData.boosterType !== 'string') {
+  if (!rawFormData.setCode || !rawFormData.boosterType || !rawFormData.lang || typeof rawFormData.setCode !== 'string' || typeof rawFormData.boosterType !== 'string' || typeof rawFormData.lang !== 'string') {
     throw new Error('Invalid form data');
   }
 
@@ -223,6 +227,7 @@ export async function createBooster(formData: FormData): Promise<void> {
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
 
   const booster = {
+    lang: rawFormData.lang,
     id: nanoid(12),
     setCode: rawFormData.setCode,
     type: rawFormData.boosterType,

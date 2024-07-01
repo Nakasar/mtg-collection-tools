@@ -21,7 +21,7 @@ type Card = {
   prices?: { eur: string; eur_foil: string };
 };
 
-export default function AddCardBar({ setCode, addCard }: { setCode: string; addCard: (({ setCode, collectorNumber }: { setCode: string; collectorNumber: string }) => Promise<void>) }) {
+export default function AddCardBar({ setCode, lang, addCard }: { setCode: string; lang: string; addCard: (({ setCode, collectorNumber }: { setCode: string; collectorNumber: string }) => Promise<void>) }) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Card[]>([]);
 
@@ -32,8 +32,26 @@ export default function AddCardBar({ setCode, addCard }: { setCode: string; addC
   async function search(): Promise<Card[]> {
     const index = client.index<Card>('cards');
 
-    const queryOptions: { filter: string[] } = { filter: [`set = ${setCode}`] };
+    const queryOptions: { filter: string[] } = { filter: [] };
     let queryString = "";
+
+    if (searchQuery.includes(' lang:')) {
+
+    } else {
+      queryOptions.filter.push(
+        `lang IN [en, ${lang}]`,
+      );
+    }
+
+    if (searchQuery.includes(' e:')) {
+      queryOptions.filter.push(
+
+      );
+    } else {
+      queryOptions.filter.push(
+        `set = ${setCode}`,
+      );
+    }
 
     const queryNumber = parseInt(searchQuery);
     if (!isNaN(queryNumber)) {
