@@ -220,7 +220,11 @@ export async function refreshBoosterPrices(boosterId: Booster['id']): Promise<vo
       throw new Error('Card not found');
     }
 
-    const cardFound = result.hits[0];
+    let cardFound = result.hits[0];
+
+    if (cardFound.prices.eur === null) {
+      cardFound = result.hits[1];
+    }
 
     const cardPrice = (card.foil ? cardFound.prices?.eur_foil : cardFound.prices?.eur) ?? 0;
     boosterPrice = boosterPrice.plus(cardPrice);
