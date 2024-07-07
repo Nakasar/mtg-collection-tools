@@ -16,3 +16,4 @@ export const OLD_MAGIC_SETS: { [code: string]: string } = {
 };
 
 export const MAGIC_SETS = Object.fromEntries(sets.map(set => ([set.code.toUpperCase(), set.name])));
+export const MAGIC_SETS_DETAILS = Object.fromEntries(sets.map(set => ([set.code.toUpperCase(), set])));

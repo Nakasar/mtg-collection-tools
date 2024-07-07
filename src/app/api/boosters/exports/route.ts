@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     });
   } else if (body.format === 'DRAGONSHIELD') {
     const date = new Date();
+    const folderName = DateTime.utc().toFormat('yyyy-MM-dd_HH-mm');
 
     const cards = boosters.reduce((acc: (Card & { createdAt: string; lang: string })[], booster) => {
       return acc.concat(booster.cards.map(card => ({ ...card, createdAt: booster.createdAt, lang: booster.lang })));
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
 
       const cardDate = DateTime.fromISO(card.createdAt ?? date.toISOString());
 
-      return `${'ACR'},1,0,${sanitizedName},${card.setCode.toUpperCase()},${MAGIC_SETS[card.setCode.toUpperCase()]},${card.collectorNumber},NearMint,${card.foil ? 'Foil' : 'Normal'},${card.lang},0.5,${cardDate.toFormat('dd/LLL/yyyy')}`;
+      return `${folderName},1,0,${sanitizedName},${card.setCode.toUpperCase()},${MAGIC_SETS[card.setCode.toUpperCase()]},${card.collectorNumber},NearMint,${card.foil ? 'Foil' : 'Normal'},${card.lang},0.5,${cardDate.toFormat('dd/LLL/yyyy')}`;
     });
 
     const headers = new Headers();

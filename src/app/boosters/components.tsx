@@ -305,10 +305,12 @@ export function BoostersPage({boosters}: { boosters: Booster[] }) {
       </div>
 
       <div className="max-w-6xl mx-auto">
-        <p>
-          Moyenne par
-          booster: {boosters.reduce((acc, booster) => acc.plus(booster.price ?? 0), BigNumber(0)).div(boosters.length).toFixed(2)}€
-        </p>
+        <Link
+          href="/boosters/statistics"
+          className="px-4 py-2 border-emerald-500 border-2 shadow-md pb-2 inline-block text-emerald-500 hover:bg-emerald-100"
+        >
+          Statistiques
+        </Link>
 
         <p>
           Total: {boosters.reduce((acc, booster) => acc.plus(booster.price ?? 0), BigNumber(0)).toFixed(2)}€
