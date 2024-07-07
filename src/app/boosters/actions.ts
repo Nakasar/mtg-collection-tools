@@ -21,6 +21,7 @@ export type Card = {
   foil: boolean;
   imageUrl: string;
   price?: string;
+  newInCollection?: boolean;
 };
 
 export type Booster = {
@@ -65,6 +66,29 @@ export async function getBooster(boosterId: Booster['id']): Promise<Booster | nu
     return null;
   }
 
+  const cardNames = booster.cards.map((card) => card.name);
+
+  const cardsInCollection = await db.collection('collection').aggregate(
+    [
+      { $sort: { cardName: 1 } },
+      {
+        $group:
+          {
+            _id: "$cardName",
+            cardName: { $first: "$cardName" }
+          }
+      },
+      { $match: { _id: { $in: cardNames } } },
+    ]
+  ).toArray();
+
+  booster.cards.map((card) => {
+    if (!cardsInCollection.find((cardInCollection) => cardInCollection._id === card.name)) {
+      card.newInCollection = true;
+    }
+  });
+
+
   return {
     setCode: booster.setCode,
     id: booster.id,
@@ -102,7 +126,7 @@ export async function addCardToBoster(boosterId: Booster['id'], card: {
 
   const index = client.index('cards');
   const result = await index.search("", {
-    filter: [`set = ${card.setCode}`, `collector_number = ${card.collectorNumber}`],
+    filter: [`set = ${card.setCode}`, `collector_number = ${card.collectorNumber}`, `lang IN [${booster.lang}, en]`],
   });
 
   if (result.hits.length === 0) {
@@ -189,7 +213,7 @@ export async function refreshBoosterPrices(boosterId: Booster['id']): Promise<vo
 
   for (const card of booster.cards) {
     const result = await index.search("", {
-      filter: [`set = ${card.setCode}`, `collector_number = ${card.collectorNumber}`],
+      filter: [`set = ${card.setCode}`, `collector_number = ${card.collectorNumber}`, `lang IN [${booster.lang}, en]`],
     });
 
     if (result.hits.length === 0) {

@@ -16,7 +16,7 @@ import {Menu, Transition, MenuItems, MenuItem, MenuButton} from "@headlessui/rea
 import {ChevronDownIcon} from "@heroicons/react/20/solid";
 import classNames from "@/helpers/class-name.helper";
 import BigNumber from "bignumber.js";
-import {ArchiveBoxIcon} from "@heroicons/react/24/outline";
+import {ArchiveBoxIcon, ArrowTopRightOnSquareIcon} from "@heroicons/react/24/outline";
 
 function boosterHasAllCards(cardsCount: number, boosterType: Booster['type']) {
   if (boosterType === 'PLAY_BOOSTER') {
@@ -101,6 +101,30 @@ export function BoostersPage({boosters}: { boosters: Booster[] }) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(selectedBoostersData)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error(error);
+      return;
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = response.headers.get('filename') ?? 'export.json';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  async function exportDatabase() {
+    const response = await fetch('/api/boosters/exports', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ format: 'DATABASE', allBoosters: true }),
     });
 
     if (!response.ok) {
@@ -270,6 +294,11 @@ export function BoostersPage({boosters}: { boosters: Booster[] }) {
                       onClick={() => setIsSelectMode(true)}>
                 <SelectIcon className="w-5 h-5 inline"/> Sélectionner
               </button>
+
+              <button className="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
+                      onClick={exportDatabase}>
+                <ArrowTopRightOnSquareIcon className="w-5 h-5 inline"/> Exporter
+              </button>
             </>
           )}
         </div>
@@ -287,21 +316,21 @@ export function BoostersPage({boosters}: { boosters: Booster[] }) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {boosters.map((booster) => (
-            <>
+            <div key={booster.id}>
               {isSelectMode ? (
                 <button onClick={() => dispatchSelectedBoosters({
                   type: selectedBoosters[booster.id] ? 'UNSELECT' : 'SELECT',
                   boosterId: booster.id
                 })}
                         className={(allBoostersSelected || selectedBoosters[booster.id]) ? 'border-green-700 border-4' : ''}>
-                  <BoosterCard key={booster.id} {...booster} />
+                  <BoosterCard {...booster} />
                 </button>
               ) : (
                 <Link href={`/boosters/${booster.id}`}>
-                  <BoosterCard key={booster.id} {...booster} />
+                  <BoosterCard {...booster} />
                 </Link>
               )}
-            </>
+            </div>
           ))}
         </div>
       </div>

@@ -6,7 +6,8 @@ import { StarIcon as StarIconEmpty } from "@heroicons/react/24/outline";
 
 export default function CardCard({ card, boosterId }: { boosterId: Booster['id'], card: Card }) {
   return (
-    <div key={card.collectorNumber} className={`rounded-md border-2 ${card.foil ? 'border-yellow-500' : 'border-gray-200'} p-2 w-[160px]`}>
+    <div key={card.id} className={`rounded-md border-2 ${card.foil ? 'border-yellow-500' : 'border-gray-200'} p-2 w-[160px] flex flex-col`}>
+      {card.newInCollection && <p className="px-2 rounded-full bg-yellow-500 w-fit opacity-80 self-center absolute">Première !</p>}
       <img src={card.imageUrl} alt={card.name} className={``}/>
       <p>{card.name}</p>
       <p>{card.setCode} #{card.collectorNumber}</p>

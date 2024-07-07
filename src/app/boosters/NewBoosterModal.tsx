@@ -52,9 +52,11 @@ export default function NewBoosterModal() {
                       <SelectGroup>
                         <SelectLabel>Type de booster</SelectLabel>
                         <SelectItem value="PLAY_BOOSTER">Booster de jeu</SelectItem>
+                        <SelectItem value="COLLECTOR">Booster Collector</SelectItem>
+                        <SelectItem value="JUMPSTART">Jumpstart</SelectItem>
                         <SelectItem value="SET_BOOSTER">Booster d&apos;extension</SelectItem>
                         <SelectItem value="DRAFT_BOOSTER">Booster de draft</SelectItem>
-                        <SelectItem value="JUMPSTART">Jumpstart</SelectItem>
+                        <SelectItem value="BEYOND">Booster Infini</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>

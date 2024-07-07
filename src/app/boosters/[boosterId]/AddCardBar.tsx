@@ -37,15 +37,24 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
 
     if (searchQuery.includes(' lang:')) {
 
-    } else {
+    } else if (lang !== 'en') {
       queryOptions.filter.push(
         `lang IN [en, ${lang}]`,
       );
+    } else {
+      queryOptions.filter.push(
+        `lang IN [en]`,
+      );
     }
 
-    if (searchQuery.includes(' e:')) {
-      queryOptions.filter.push(
 
+    const setRegex = /(?: e|^e|^set| set):(?<set>[\w\*]+)/gm;
+    const setResult = setRegex.exec(searchQuery);
+    console.log(setResult?.groups?.set);
+    if (setResult?.groups?.set === '*') {
+    } else if (setResult?.groups?.set) {
+      queryOptions.filter.push(
+        `set = ${setResult?.groups?.set}`,
       );
     } else {
       queryOptions.filter.push(
