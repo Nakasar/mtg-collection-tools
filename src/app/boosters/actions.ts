@@ -226,13 +226,15 @@ export async function refreshBoosterPrices(boosterId: Booster['id']): Promise<vo
       cardFound = result.hits[1];
     }
 
-    const cardPrice = (card.foil ? cardFound.prices?.eur_foil : cardFound.prices?.eur) ?? 0;
-    boosterPrice = boosterPrice.plus(cardPrice);
+    if (cardFound) {
+      const cardPrice = (card.foil ? cardFound.prices?.eur_foil : cardFound.prices?.eur) ?? 0;
+      boosterPrice = boosterPrice.plus(cardPrice);
 
-    await db.collection<Booster>('boosters').updateOne({
-      id: boosterId,
-      'cards.id': card.id
-    }, {$set: {'cards.$.price': cardPrice.toString()}});
+      await db.collection<Booster>('boosters').updateOne({
+        id: boosterId,
+        'cards.id': card.id
+      }, {$set: {'cards.$.price': cardPrice.toString()}});
+    }
   }
 
   await db.collection<Booster>('boosters').updateOne({id: boosterId}, {$set: {price: boosterPrice.toString()}});

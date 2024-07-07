@@ -50,7 +50,6 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
 
     const setRegex = /(?: e|^e|^set| set):(?<set>[\w\*]+)/gm;
     const setResult = setRegex.exec(searchQuery);
-    console.log(setResult?.groups?.set);
     if (setResult?.groups?.set === '*') {
     } else if (setResult?.groups?.set) {
       queryOptions.filter.push(
@@ -109,6 +108,7 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
               className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
               placeholder="Rechercher..."
               onChange={(event) => setSearchQuery(event.target.value)}
+              autoFocus
             />
           </div>
 

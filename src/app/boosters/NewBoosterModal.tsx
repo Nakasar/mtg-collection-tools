@@ -71,8 +71,8 @@ export default function NewBoosterModal() {
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Type de booster</SelectLabel>
-                        <SelectItem value="fr">Français</SelectItem>
-                        <SelectItem value="en">Anglais</SelectItem>
+                        <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                        <SelectItem value="en">🇬🇧 Anglais</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>

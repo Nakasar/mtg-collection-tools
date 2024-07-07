@@ -5,6 +5,18 @@ import {DeleteBooster, RefreshPrices} from "@/app/boosters/[boosterId]/BoosterDe
 import {ChevronLeftIcon} from "@heroicons/react/24/solid";
 import Link from "next/link";
 
+const langToFlag: { [lang: string]: string } = {
+  'fr': '🇫🇷',
+  'en': '🇬🇧',
+  'de': '🇩🇪',
+  'es': '🇪🇸',
+  'it': '🇮🇹',
+  'pt': '🇵🇹',
+  'ja': '🇯🇵',
+  'ko': '🇰🇷',
+  'ru': '🇷🇺',
+}
+
 export default async function BoosterDetails({ params }: { params: { boosterId: string } }) {
   const booster = await getBooster(params.boosterId);
 
@@ -29,7 +41,7 @@ export default async function BoosterDetails({ params }: { params: { boosterId: 
           <ChevronLeftIcon className="size-6"/>
         </Link>
 
-        <h1 className="text-xl font-semibold pb-8">{booster.setCode} {booster.type}</h1>
+        <h1 className="text-xl font-semibold pb-8">{langToFlag[booster.lang] ?? booster.lang} {booster.setCode} {booster.type}</h1>
       </div>
 
       <p className="text-lg font-semibold">Valeur estimée : {booster.price ?? '-'} €</p>
