@@ -5,7 +5,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import {
   ArchiveBoxIcon,
   ArrowsRightLeftIcon,
-  Cog6ToothIcon,
+  Cog6ToothIcon, CubeIcon,
   DocumentMagnifyingGlassIcon, FolderIcon,
   HomeIcon, LanguageIcon,
   XMarkIcon,
@@ -23,6 +23,7 @@ const navigation = [
   { name: 'Recherche', href: '/finder', icon: DocumentMagnifyingGlassIcon },
   { name: 'Boosters', href: '/boosters', icon: FolderIcon },
   { name: 'Collection', href: '/collection', icon: ArchiveBoxIcon },
+  { name: 'Cubes', href: '/cubes', icon: CubeIcon },
 ];
 
 function isLinkActive(pathname: string, href: string) {

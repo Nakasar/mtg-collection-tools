@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   neatCsv(content)
     .then((content) => {
       return content.map(row => ({
-        quantity: row['Quantity'],
+        quantity: parseInt(row['Quantity']),
         cardName: row['Card Name'],
         setCode: row['Set Code'],
         setName: row['Set Name'],
@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
     .then(async cards => {
       await db.collection('collection').drop();
       await db.collection('collection').insertMany(cards.filter(card => card.cardName !== null));
+      await db.collection('collection').createIndex({ cardName: 1 }, { collation: { locale: 'en', strength: 1 } });
     })
     .then(() => {
       console.info('Collection imported successfully.');

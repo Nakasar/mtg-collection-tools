@@ -3,7 +3,6 @@
 import {FormEvent, useState} from "react";
 import classNames from "@/helpers/class-name.helper";
 import {ArrowDownTrayIcon} from "@heroicons/react/24/outline";
-import {set} from "zod";
 
 export default function ImportCollectionForm() {
   const [importing, setImporting] = useState<boolean>(false);
