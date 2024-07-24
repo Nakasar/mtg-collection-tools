@@ -145,7 +145,7 @@ router.post('/refresh-cards-db', async (req, res) => {
         }
 
         console.log('Finished importing to search db.');
-        await rm(join(__dirname, `tmp/cards-db-downloads/${fileId}.json`));
+        //await rm(join(__dirname, `tmp/cards-db-downloads/${fileId}.json`));
     }).catch(error => {
         console.error('Error while refreshing card database:', error);
     });

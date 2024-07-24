@@ -222,12 +222,18 @@ export async function refreshBoosterPrices(boosterId: Booster['id']): Promise<vo
 
     let cardFound = result.hits[0];
 
-    if (cardFound.prices.eur === null) {
+    if (cardFound.prices.eur === null && result.hits[1]) {
       cardFound = result.hits[1];
     }
 
     if (cardFound) {
-      const cardPrice = (card.foil ? cardFound.prices?.eur_foil : cardFound.prices?.eur) ?? 0;
+      let cardPrice = 0;
+      if (card.foil) {
+        cardPrice = cardFound.prices?.eur_foil ?? (cardFound.prices?.usd_foil ? BigNumber(cardFound.prices?.usd_foil).multipliedBy(0.92) : 0);
+      } else {
+        cardPrice = cardFound.prices?.eur ?? (cardFound.prices?.usd ? BigNumber(cardFound.prices?.usd).multipliedBy(0.92) : 0);
+      }
+
       boosterPrice = boosterPrice.plus(cardPrice);
 
       await db.collection<Booster>('boosters').updateOne({

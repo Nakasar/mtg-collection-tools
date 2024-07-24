@@ -7,6 +7,11 @@ import {redirect} from "next/navigation";
 import neatCsv from "neat-csv";
 
 import clientPromise from "@/lib/mongo";
+import {MeiliSearch} from "meilisearch";
+
+const meiliClient = new MeiliSearch({
+  host: 'http://localhost:7700',
+});
 
 export type Cube = {
   id: string;
@@ -25,6 +30,8 @@ export type CubeBoosterCards = {
   quantity: number;
   owned?: boolean;
   ownedEnough?: boolean;
+  manaCost?: string;
+  colorIdentity?: string[];
 }
 
 export async function getCubes(): Promise<Cube[]> {
@@ -64,21 +71,60 @@ export async function createCube(formData: FormData): Promise<void> {
     const cubeDataString = await cubeFile.text()
     const cubeCsv = await neatCsv(cubeDataString);
 
+    const uniqueCards = [...new Set(cubeCsv.map(row => row['name'])).values()];
+
+    const uniqueCardsWithMetadata: {
+      name: string;
+      manaCost?: string;
+      colorIdentity?: string[];
+      oracleId?: string;
+    }[] = [];
+    for (const cardName of uniqueCards) {
+      const cardMetadataResult = await meiliClient.index('cards').search('', { filter: ['lang = en', `name = "${cardName.replaceAll("\"", "\\\"")}"`], limit: 1 });
+
+      if (cardMetadataResult.hits.length === 0) {
+        uniqueCardsWithMetadata.push({
+          name: cardName,
+        });
+      } else {
+        const cardMetadata = cardMetadataResult.hits[0];
+
+        uniqueCardsWithMetadata.push({
+          name: cardName,
+          manaCost: cardMetadata.mana_cost,
+          colorIdentity: cardMetadata.color_identity,
+          oracleId: cardMetadata.oracle_id,
+        });
+      }
+    }
+
+    const uniqueCardsWithMetadataSet = uniqueCardsWithMetadata.reduce((acc: { [cardName: string]: CubeBoosterCards }, card) => {
+      acc[card.name] = {
+        ...card,
+        quantity: 0,
+      };
+
+      return acc;
+    }, {});
+
     const boosters = cubeCsv.map(row => ({
       boosterName: row['tags'],
       cardName: row['name'],
+      color: row['color'],
     })).reduce((acc: { [boosterName: string]: CubeBooster }, card) => {
       if (!acc[card.boosterName]) {
         acc[card.boosterName] = {
           id: nanoid(12),
           name: card.boosterName,
           cards: [{
+            ...uniqueCardsWithMetadataSet[card.cardName],
             name: card.cardName,
             quantity: 1,
           }],
         }
       } else {
         acc[card.boosterName].cards.push({
+          ...uniqueCardsWithMetadataSet[card.cardName],
           name: card.cardName,
           quantity: 1,
         });
@@ -179,6 +225,19 @@ export async function refreshCube(cubeId: string): Promise<void> {
       });
     }
   }));
+
+  revalidatePath(`/cubes/${cubeId}`);
+}
+
+export async function deleteBoosterFromCube(cubeId: string, boosterId: string): Promise<void> {
+  const client = await clientPromise;
+  const db = client.db(process.env.MONGODB_DBNAME);
+
+  await db.collection('cubes').updateOne({id: cubeId}, {
+    $pull: {
+      boosters: {id: boosterId}
+    }
+  });
 
   revalidatePath(`/cubes/${cubeId}`);
 }

@@ -51,7 +51,7 @@ http://localhost:7700/indexes/:indexId/settings
         "card_faces.printed_type_line",
         "card_faces.flavor_text"
     ],
-    "filterableAttributes": ["lang", "set", "oracle_id", "collector_number"]
+    "filterableAttributes": ["name", "lang", "set", "oracle_id", "collector_number"]
 }
 ```
 
