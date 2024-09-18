@@ -1,0 +1,1 @@
+Download sets from [https://api.scryfall.com/sets](https://api.scryfall.com/sets)

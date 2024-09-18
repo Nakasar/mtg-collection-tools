@@ -5,7 +5,8 @@ import React, {FormEvent, useEffect, useState} from "react";
 import {Combobox} from "@headlessui/react";
 import {MagnifyingGlassIcon} from "@heroicons/react/20/solid";
 import classNames from "@/helpers/class-name.helper";
-import {ExclamationCircleIcon} from "@heroicons/react/24/outline";
+import {ExclamationCircleIcon, StarIcon} from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid"
 
 const client = new MeiliSearch({
   host: 'http://127.0.0.1:7700',
@@ -21,9 +22,10 @@ type Card = {
   prices?: { eur: string; eur_foil: string };
 };
 
-export default function AddCardBar({ setCode, lang, addCard }: { setCode: string; lang: string; addCard: (({ setCode, collectorNumber }: { setCode: string; collectorNumber: string }) => Promise<void>) }) {
+export default function AddCardBar({ setCode, lang, addCard }: { setCode: string; lang: string; addCard: (({ setCode, collectorNumber, foil }: { setCode: string; collectorNumber: string; foil: boolean }) => Promise<void>) }) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Card[]>([]);
+  const [useFoil, setUseFoil] = useState<boolean>(false);
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -81,6 +83,7 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
     addCard({
       setCode: item.set,
       collectorNumber: item.collector_number,
+      foil: useFoil,
     }).then(() => {
       setSearchQuery("");
     });
@@ -95,9 +98,9 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
   }, [searchQuery]);
 
   return (
-    <div>
+    <div className="flex flex-row items-center space-x-2">
       <div
-        className="divide-y divide-gray-100 overflow-hidden rounded-xl bg-white ring-1 ring-black ring-opacity-5 transition-all">
+        className="w-full divide-y divide-gray-100 overflow-hidden rounded-xl bg-white ring-1 ring-black ring-opacity-5 transition-all">
         <Combobox onChange={selectItem}>
           <div className="relative">
             <MagnifyingGlassIcon
@@ -164,6 +167,10 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
           )}
         </Combobox>
       </div>
+
+      <button onClick={() => setUseFoil(!useFoil)}>
+        {useFoil ? <StarIconSolid className="size-6 grow-0 text-yellow-500" /> : <StarIcon className="size-6 grow-0" />}
+      </button>
     </div>
   );
 }

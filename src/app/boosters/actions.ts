@@ -113,7 +113,8 @@ export async function deleteBooster(boosterId: Booster['id']): Promise<void> {
 
 export async function addCardToBoster(boosterId: Booster['id'], card: {
   setCode: string;
-  collectorNumber: string
+  collectorNumber: string;
+  foil: boolean;
 }): Promise<void> {
   const mongoClient = await clientPromise;
   const db = mongoClient.db(process.env.MONGODB_DBNAME);
@@ -135,7 +136,12 @@ export async function addCardToBoster(boosterId: Booster['id'], card: {
 
   const cardFound = result.hits[0];
 
-  const cardPrice = (cardFound.foil ? cardFound.prices?.eur_foil : cardFound.prices?.eur) ?? 0;
+  let cardPrice = 0;
+  if (card.foil) {
+    cardPrice = cardFound.prices?.eur_foil ?? (cardFound.prices?.usd_foil ? BigNumber(cardFound.prices?.usd_foil).multipliedBy(0.92) : 0);
+  } else {
+    cardPrice = cardFound.prices?.eur ?? (cardFound.prices?.usd ? BigNumber(cardFound.prices?.usd).multipliedBy(0.92) : 0);
+  }
 
   let imageUrl = cardFound.image_uris ? cardFound.image_uris?.small : cardFound.card_faces ? cardFound.card_faces[0]?.image_uris?.small : null;
 
@@ -144,9 +150,9 @@ export async function addCardToBoster(boosterId: Booster['id'], card: {
     name: cardFound.name,
     setCode: cardFound.set,
     collectorNumber: cardFound.collector_number,
-    foil: cardFound.foil,
+    foil: card.foil,
     imageUrl: imageUrl,
-    price: cardPrice.toString(),
+    price: BigNumber(cardPrice).toFixed(2),
   };
 
   const boosterPrice = booster.price ? BigNumber(booster.price) : BigNumber(0);
@@ -154,7 +160,7 @@ export async function addCardToBoster(boosterId: Booster['id'], card: {
 
   await db.collection<Booster>('boosters').updateOne({id: boosterId}, {
     $push: {cards: cardData},
-    $set: {price: newPrice.toString()},
+    $set: {price: newPrice.toFixed(2)},
   });
 
   revalidateTag('boosters');

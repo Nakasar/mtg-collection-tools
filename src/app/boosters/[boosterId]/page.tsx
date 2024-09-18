@@ -24,14 +24,14 @@ export default async function BoosterDetails({ params }: { params: { boosterId: 
     return <div>Booster not found</div>;
   }
 
-  async function addCard({ setCode, collectorNumber }: { setCode: string; collectorNumber: string }) {
+  async function addCard({ setCode, collectorNumber, foil }: { setCode: string; collectorNumber: string; foil: boolean }) {
     'use server';
 
     if (!booster) {
       throw new Error('Booster not found');
     }
 
-    await addCardToBoster(booster.id, { setCode, collectorNumber });
+    await addCardToBoster(booster.id, { setCode, collectorNumber, foil });
   }
 
   return (
