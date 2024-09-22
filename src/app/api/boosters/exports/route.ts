@@ -7,6 +7,8 @@ import {DateTime} from "luxon";
 export async function POST(request: Request) {
   const body = await request.json();
 
+  const isoDate = DateTime.now().toISODate();
+
   if (!['JSON', 'DRAGONSHIELD', 'DATABASE'].includes(body.format)) {
     return NextResponse.json({ error: 'Invalid format (accepted: JSON, DRAGONSHIELD' }, { status: 400 });
   }
@@ -25,7 +27,7 @@ export async function POST(request: Request) {
   if (body.format === 'JSON' || body.format === 'DATABASE') {
     return NextResponse.json(boosters, {
       headers: {
-        'filename': 'boosters-export.json',
+        'filename': `mtg-boosters-export-${isoDate}.json`,
       },
     });
   } else if (body.format === 'DRAGONSHIELD') {
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
 
     const headers = new Headers();
     headers.set('Content-Type', 'text/csv');
-    headers.set('filename', 'booster-cards-export-for-dragonshield.csv');
+    headers.set('filename', `mtg-booster-cards-export-for-dragonshield-${isoDate}.csv`);
 
     return new NextResponse(header + '\n' + cardLines.join('\n'), { status: 200, headers: headers });
   } else {
