@@ -6,7 +6,7 @@ import {ArrowRightIcon, ClipboardIcon} from "@heroicons/react/24/outline";
 import {MAGIC_SETS} from "@/constants/mtg-sets";
 import {DownloadIcon} from "lucide-react";
 
-const cardLineRegex = /(?<quantity>[0-9]{1,2}) (?<name>.+) \((?<set>[A-Z0-9]{3,4})\) (?<code>[0-9]{1,5})(?<foil> \*F\*){0,1}/gm;
+const cardLineRegex = /(?<quantity>[0-9]{1,2}) (?<name>.+) \((?<set>[A-Z0-9]{3,4})\) (?<code>([0-9]{1,5}|[A-Z0-9]{3,4}-[0-9]{1,3}))(?<foil> \*F\*){0,1}/gm;
 const lang = 'French';
 
 export default function Converter() {
@@ -22,6 +22,8 @@ export default function Converter() {
     setConvertedCards('');
 
     const cards = [...cardListRaw.matchAll(cardLineRegex)];
+
+    console.log(cards.length);
 
     const header = 'Folder Name,Quantity,Trade Quantity,Card Name,Set Code,Set Name,Card Number,Condition,Printing,Language,Price Bought,Date Bought';
     const convertedCards = cards.map(card => {

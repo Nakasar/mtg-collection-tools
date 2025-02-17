@@ -1,15 +1,15 @@
 import {NextRequest, NextResponse} from "next/server";
-import {MongoClient} from "mongodb";
 import {MeiliSearch} from "meilisearch";
-
-const mongoClient = new MongoClient('mongodb://localhost:27017');
-const db = mongoClient.db(process.env.MONGODB_DBNAME);
+import clientPromise from "@/lib/mongo";
 
 const meiliClient = new MeiliSearch({
   host: 'http://localhost:7700',
 });
 
 export async function POST(request: NextRequest) {
+  const mongoClient = await clientPromise;
+  const db = mongoClient.db(process.env.MONGODB_DBNAME);
+
   const body = await request.json();
   if (!body.cards) {
     return NextResponse.json({

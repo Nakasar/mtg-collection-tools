@@ -5,8 +5,8 @@ import React, {FormEvent, useEffect, useState} from "react";
 import {Combobox} from "@headlessui/react";
 import {MagnifyingGlassIcon} from "@heroicons/react/20/solid";
 import classNames from "@/helpers/class-name.helper";
-import {ExclamationCircleIcon, StarIcon} from "@heroicons/react/24/outline";
-import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid"
+import {ExclamationCircleIcon, StarIcon, DocumentIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid, DocumentIcon as DocumentIconSolid, GlobeAltIcon as GlobeAltIconSolid } from "@heroicons/react/24/solid"
 
 const client = new MeiliSearch({
   host: 'http://127.0.0.1:7700',
@@ -26,6 +26,8 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Card[]>([]);
   const [useFoil, setUseFoil] = useState<boolean>(false);
+  const [useAllowPLST, setUseAllowPLST] = useState<boolean>(false);
+  const [useAnySet, setUseAnySet] = useState<boolean>(false);
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -38,7 +40,13 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
     let queryString = "";
 
     if (searchQuery.includes(' lang:')) {
-
+      const langRegex = /(?: lang:)(?<lang>[\w]+)/gm;
+      const langResult = langRegex.exec(searchQuery);
+      if (langResult?.groups?.lang) {
+        queryOptions.filter.push(
+          `lang = ${langResult?.groups?.lang}`,
+        );
+      }
     } else if (lang !== 'en') {
       queryOptions.filter.push(
         `lang IN [en, ${lang}]`,
@@ -57,7 +65,11 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
       queryOptions.filter.push(
         `set = ${setResult?.groups?.set}`,
       );
-    } else {
+    } else if (useAllowPLST) {
+      queryOptions.filter.push(
+        `set = ${setCode} OR set = PLST`,
+      );
+    } else if (!useAnySet) {
       queryOptions.filter.push(
         `set = ${setCode}`,
       );
@@ -71,6 +83,8 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
     } else {
       queryString = searchQuery;
     }
+
+    console.log({ queryString, queryOptions });
 
     const result = await index.search(queryString, queryOptions);
 
@@ -168,9 +182,19 @@ export default function AddCardBar({ setCode, lang, addCard }: { setCode: string
         </Combobox>
       </div>
 
-      <button onClick={() => setUseFoil(!useFoil)}>
-        {useFoil ? <StarIconSolid className="size-6 grow-0 text-yellow-500" /> : <StarIcon className="size-6 grow-0" />}
-      </button>
+      <div className="flex flex-row">
+        <button onClick={() => setUseFoil(!useFoil)}>
+          {useFoil ? <StarIconSolid className="size-6 grow-0 text-yellow-500" /> : <StarIcon className="size-6 grow-0" />}
+        </button>
+
+        <button onClick={() => setUseAllowPLST(!useAllowPLST)}>
+          {useAllowPLST ? <DocumentIconSolid className="size-6 grow-0 text-emerald-500" /> : <DocumentIcon className="size-6 grow-0" />}
+        </button>
+
+        <button onClick={() => setUseAnySet(!useAnySet)}>
+          {useAnySet ? <GlobeAltIconSolid className="size-6 grow-0 text-indigo-500" /> : <GlobeAltIcon className="size-6 grow-0" />}
+        </button>
+      </div>
     </div>
   );
 }

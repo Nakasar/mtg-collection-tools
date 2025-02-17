@@ -1,4 +1,4 @@
-import sets from './sets.json';
+import sets from './sets.json'; // GET https://api.scryfall.com/sets (only "data" array property)
 
 export const OLD_MAGIC_SETS: { [code: string]: string } = {
   'OTJ': 'Outlaws of Thunder Junction',
@@ -13,6 +13,7 @@ export const OLD_MAGIC_SETS: { [code: string]: string } = {
   'ZNR': 'Zendikar Rising',
   'AER': 'Aether Revolt',
   'KHM': 'Kaldheim',
+  'MBS-1': 'Mystery Boosters 2',
 };
 
 export const MAGIC_SETS = Object.fromEntries(sets.map(set => ([set.code.toUpperCase(), set.name])));

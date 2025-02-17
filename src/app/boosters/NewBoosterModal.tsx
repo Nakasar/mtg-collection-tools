@@ -57,6 +57,8 @@ export default function NewBoosterModal() {
                         <SelectItem value="SET_BOOSTER">Booster d&apos;extension</SelectItem>
                         <SelectItem value="DRAFT_BOOSTER">Booster de draft</SelectItem>
                         <SelectItem value="BEYOND">Booster Infini</SelectItem>
+                        <SelectItem value="AP">Avant Première</SelectItem>
+                        <SelectItem value="OTHER">Autre</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
