@@ -82,6 +82,10 @@ export async function getBooster(boosterId: Booster['id']): Promise<Booster | nu
     ]
   ).toArray();
 
+
+  console.log(cardNames);
+  console.log(cardsInCollection);
+
   booster.cards.map((card) => {
     if (!cardsInCollection.find((cardInCollection) => cardInCollection._id === card.name)) {
       card.newInCollection = true;
